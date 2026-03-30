@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Edit Appointment{% endblock %}
+{% block page_title %}Edit Appointment{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:480px">
+  <div class="card-header"><h2>Update Status — Appointment #{{ appointment.AppointmentID }}</h2></div>
+  <div class="card-body">
+    <p style="margin-bottom:16px;color:var(--text-muted)">
+      {{ appointment.patient.Name if appointment.patient else '—' }} ·
+      {{ appointment.Date }} at {{ appointment.Time }}
+    </p>
+    <form method="POST" action="/appointments/edit/{{ appointment.AppointmentID }}">
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          {% for s in ['Scheduled', 'Completed', 'Cancelled'] %}
+          <option {% if appointment.Status == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="/appointments" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

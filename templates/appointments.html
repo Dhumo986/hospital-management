@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}
+{% block page_title %}Appointments{% endblock %}
+{% block topbar_actions %}
+  <a href="/appointments/add" class="btn btn-primary">+ Schedule Appointment</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>All Appointments ({{ appointments|length }})</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Date</th><th>Time</th><th>Patient</th>
+          <th>Doctor</th><th>Room</th><th>Reason</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ a.AppointmentID }}</span></td>
+          <td>{{ a.Date }}</td>
+          <td>{{ a.Time }}</td>
+          <td>{{ a.patient.Name if a.patient else '—' }}</td>
+          <td>{{ a.doctor.Name if a.doctor else '—' }}</td>
+          <td>{{ a.room.RoomNumber if a.room else '—' }}</td>
+          <td>{{ a.Reason or '—' }}</td>
+          <td>
+            {% if a.Status == 'Scheduled' %}<span class="badge badge-blue">Scheduled</span>
+            {% elif a.Status == 'Completed' %}<span class="badge badge-green">Completed</span>
+            {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+          </td>
+          <td style="display:flex;gap:6px">
+            <a href="/appointments/edit/{{ a.AppointmentID }}" class="btn btn-sm btn-outline">Edit</a>
+            <a href="/appointments/delete/{{ a.AppointmentID }}" class="btn btn-sm btn-danger"
+               onclick="return confirm('Delete this appointment?')">Delete</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:32px">No appointments found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

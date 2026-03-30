@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Edit Patient{% endblock %}
+{% block page_title %}Edit Patient{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:720px">
+  <div class="card-header"><h2>Edit Patient #{{ patient.PatientID }}</h2></div>
+  <div class="card-body">
+    <form method="POST" action="/patients/edit/{{ patient.PatientID }}">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Full Name</label>
+          <input name="name" value="{{ patient.Name }}" required/>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input name="phone" value="{{ patient.Phone or '' }}"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input name="email" value="{{ patient.Email or '' }}"/>
+        </div>
+        <div class="form-group full">
+          <label>Address</label>
+          <input name="address" value="{{ patient.Address or '' }}"/>
+        </div>
+        <div class="form-group">
+          <label>Insurance Provider</label>
+          <input name="insurance_provider" value="{{ patient.InsuranceProvider or '' }}"/>
+        </div>
+        <div class="form-group">
+          <label>Policy Number</label>
+          <input name="policy_number" value="{{ patient.PolicyNumber or '' }}"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="/patients" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

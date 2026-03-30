@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+{% block page_title %}Patients{% endblock %}
+{% block topbar_actions %}
+  <a href="/patients/add" class="btn btn-primary">+ Add Patient</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>All Patients ({{ patients|length }})</h2>
+    <form method="GET" action="/patients" class="search-bar" style="margin:0">
+      <input name="search" placeholder="Search by name or phone..." value="{{ search }}"/>
+      <button type="submit" class="btn btn-outline">Search</button>
+      {% if search %}<a href="/patients" class="btn btn-outline">Clear</a>{% endif %}
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>DOB</th><th>Gender</th>
+          <th>Phone</th><th>Blood Type</th><th>Insurance</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ p.PatientID }}</span></td>
+          <td><strong>{{ p.Name }}</strong></td>
+          <td>{{ p.DOB or '—' }}</td>
+          <td>
+            {% if p.Gender == 'Male' %}<span class="badge badge-blue">Male</span>
+            {% elif p.Gender == 'Female' %}<span class="badge badge-green">Female</span>
+            {% else %}<span class="badge badge-gray">Other</span>{% endif %}
+          </td>
+          <td>{{ p.Phone or '—' }}</td>
+          <td><span class="badge badge-yellow">{{ p.BloodType or '—' }}</span></td>
+          <td>{{ p.InsuranceProvider or '—' }}</td>
+          <td style="display:flex;gap:6px">
+            <a href="/patients/edit/{{ p.PatientID }}" class="btn btn-sm btn-outline">Edit</a>
+            <a href="/patients/delete/{{ p.PatientID }}" class="btn btn-sm btn-danger"
+               onclick="return confirm('Delete this patient?')">Delete</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px">No patients found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

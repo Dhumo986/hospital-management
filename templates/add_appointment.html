@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Schedule Appointment{% endblock %}
+{% block page_title %}Schedule Appointment{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:720px">
+  <div class="card-header"><h2>Appointment Details</h2></div>
+  <div class="card-body">
+    <form method="POST" action="/appointments/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input name="date" type="date" required/>
+        </div>
+        <div class="form-group">
+          <label>Time</label>
+          <input name="time" type="time" required/>
+        </div>
+        <div class="form-group full">
+          <label>Reason for Visit</label>
+          <input name="reason" placeholder="e.g. Chest pain, Routine checkup"/>
+        </div>
+        <div class="form-group">
+          <label>Patient</label>
+          <select name="patient_id" required>
+            <option value="">— Select Patient —</option>
+            {% for p in patients %}
+            <option value="{{ p.PatientID }}">{{ p.Name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Doctor</label>
+          <select name="doctor_id" required>
+            <option value="">— Select Doctor —</option>
+            {% for d in doctors %}
+            <option value="{{ d.DoctorID }}">{{ d.Name }} ({{ d.Specialty }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Room</label>
+          <select name="room_id" required>
+            <option value="">— Select Room —</option>
+            {% for r in rooms %}
+            <option value="{{ r.RoomID }}">{{ r.RoomNumber }} — {{ r.Type }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Schedule</button>
+        <a href="/appointments" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

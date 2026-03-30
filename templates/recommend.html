@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Doctor Recommendation{% endblock %}
+{% block page_title %}Smart Doctor Recommendation{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px; margin-bottom:24px">
+  <div class="card-header">
+    <h2>⭐ Find the Right Doctor</h2>
+  </div>
+  <div class="card-body">
+    <p style="color:var(--text-muted);margin-bottom:20px;font-size:13.5px">
+      Enter your preferred specialty and desired appointment time. We'll find available doctors with no scheduling conflicts.
+    </p>
+    <form method="POST" action="/recommend">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Specialty Needed</label>
+          <select name="specialty">
+            {% for s in specialties %}
+            <option>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Preferred Date</label>
+          <input name="date" type="date" required/>
+        </div>
+        <div class="form-group">
+          <label>Preferred Time</label>
+          <input name="time" type="time" required/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">Find Available Doctors</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if recommended is defined and request.method == 'POST' or recommended %}
+<div class="card">
+  <div class="card-header">
+    <h2>Recommended Doctors ({{ recommended|length }} available)</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Doctor</th><th>Specialty</th><th>Department</th><th>Phone</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for d in recommended %}
+        <tr>
+          <td><strong>{{ d.Name }}</strong></td>
+          <td><span class="badge badge-blue">{{ d.Specialty }}</span></td>
+          <td>{{ d.department.Name if d.department else '—' }}</td>
+          <td>{{ d.Phone or '—' }}</td>
+          <td>
+            <a href="/appointments/add" class="btn btn-sm btn-primary">Book</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">
+            No available doctors found for the selected time. Please try a different time.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

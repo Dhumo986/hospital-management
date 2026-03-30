@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Departments{% endblock %}
+{% block page_title %}Departments{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header"><h2>All Departments ({{ departments|length }})</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Location</th><th>Phone</th><th>Doctors</th><th>Rooms</th></tr>
+      </thead>
+      <tbody>
+        {% for d in departments %}
+        <tr>
+          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ d.DepartmentID }}</span></td>
+          <td><strong>{{ d.Name }}</strong></td>
+          <td>{{ d.Location or '—' }}</td>
+          <td>{{ d.Phone or '—' }}</td>
+          <td><span class="badge badge-blue">{{ d.doctors|length }}</span></td>
+          <td><span class="badge badge-green">{{ d.rooms|length }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">No departments found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

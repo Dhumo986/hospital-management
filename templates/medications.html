@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Medications{% endblock %}
+{% block page_title %}Medications{% endblock %}
+{% block topbar_actions %}
+  <a href="/medications/add" class="btn btn-primary">+ Add Medication</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header"><h2>All Medications ({{ medications|length }})</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Dosage</th><th>Manufacturer</th><th>Side Effects</th></tr>
+      </thead>
+      <tbody>
+        {% for m in medications %}
+        <tr>
+          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ m.MedicationID }}</span></td>
+          <td><strong>{{ m.Name }}</strong></td>
+          <td><span class="badge badge-yellow">{{ m.Dosage or '—' }}</span></td>
+          <td>{{ m.Manufacturer or '—' }}</td>
+          <td style="color:var(--text-muted);font-size:12px">{{ m.SideEffects or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">No medications found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

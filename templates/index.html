@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Hospital MS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">👤</div>
+    <div class="stat-label">Total Patients</div>
+    <div class="stat-value">{{ stats.patients }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🩺</div>
+    <div class="stat-label">Total Doctors</div>
+    <div class="stat-value">{{ stats.doctors }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📅</div>
+    <div class="stat-label">Appointments</div>
+    <div class="stat-value">{{ stats.appointments }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🏥</div>
+    <div class="stat-label">Departments</div>
+    <div class="stat-value">{{ stats.departments }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Quick Navigation</h2>
+  </div>
+  <div class="card-body">
+    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:12px;">
+      <a href="/patients/add" class="btn btn-primary">+ Add Patient</a>
+      <a href="/doctors/add" class="btn btn-primary">+ Add Doctor</a>
+      <a href="/appointments/add" class="btn btn-primary">+ Add Appointment</a>
+      <a href="/medications/add" class="btn btn-outline">+ Add Medication</a>
+      <a href="/recommend" class="btn btn-success">⭐ Recommend Doctor</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

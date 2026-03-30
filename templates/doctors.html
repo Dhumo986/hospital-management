@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Doctors{% endblock %}
+{% block page_title %}Doctors{% endblock %}
+{% block topbar_actions %}
+  <a href="/doctors/add" class="btn btn-primary">+ Add Doctor</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>All Doctors ({{ doctors|length }})</h2>
+    <form method="GET" action="/doctors" class="search-bar" style="margin:0">
+      <input name="search" placeholder="Search by name or specialty..." value="{{ search }}"/>
+      <button type="submit" class="btn btn-outline">Search</button>
+      {% if search %}<a href="/doctors" class="btn btn-outline">Clear</a>{% endif %}
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Specialty</th><th>License</th>
+          <th>Phone</th><th>Department</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in doctors %}
+        <tr>
+          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ d.DoctorID }}</span></td>
+          <td><strong>{{ d.Name }}</strong></td>
+          <td><span class="badge badge-blue">{{ d.Specialty or '—' }}</span></td>
+          <td><span style="font-family:'DM Mono',monospace;font-size:12px">{{ d.LicenseNumber }}</span></td>
+          <td>{{ d.Phone or '—' }}</td>
+          <td>{{ d.department.Name if d.department else '—' }}</td>
+          <td style="display:flex;gap:6px">
+            <a href="/doctors/edit/{{ d.DoctorID }}" class="btn btn-sm btn-outline">Edit</a>
+            <a href="/doctors/delete/{{ d.DoctorID }}" class="btn btn-sm btn-danger"
+               onclick="return confirm('Delete this doctor?')">Delete</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">No doctors found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
