@@ -189,6 +189,56 @@ def delete_appointment(id):
     return redirect(url_for('appointments'))
 
 # ══════════════════════════════════════════════════════════════════════════════
+# ROOM ROUTES (Rafik's module)
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route('/rooms')
+def rooms():
+    status_filter = request.args.get('status', '')
+    if status_filter:
+        results = Room.query.filter_by(Status=status_filter).all()
+    else:
+        results = Room.query.all()
+    return render_template('rooms.html', rooms=results, status_filter=status_filter)
+
+@app.route('/rooms/add', methods=['GET', 'POST'])
+def add_room():
+    departments = Department.query.all()
+    if request.method == 'POST':
+        r = Room(
+            RoomNumber=request.form['room_number'],
+            Type=request.form['type'],
+            Status=request.form['status'],
+            DepartmentID=request.form['department_id']
+        )
+        db.session.add(r)
+        db.session.commit()
+        flash('Room added successfully!', 'success')
+        return redirect(url_for('rooms'))
+    return render_template('add_room.html', departments=departments)
+
+@app.route('/rooms/edit/<int:id>', methods=['GET', 'POST'])
+def edit_room(id):
+    r = Room.query.get_or_404(id)
+    departments = Department.query.all()
+    if request.method == 'POST':
+        r.RoomNumber   = request.form['room_number']
+        r.Type         = request.form['type']
+        r.Status       = request.form['status']
+        r.DepartmentID = request.form['department_id']
+        db.session.commit()
+        flash('Room updated!', 'success')
+        return redirect(url_for('rooms'))
+    return render_template('edit_room.html', room=r, departments=departments)
+
+@app.route('/rooms/delete/<int:id>')
+def delete_room(id):
+    r = Room.query.get_or_404(id)
+    db.session.delete(r)
+    db.session.commit()
+    flash('Room deleted.', 'warning')
+    return redirect(url_for('rooms'))
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MEDICATION ROUTES (Dhruv's module)
 # ══════════════════════════════════════════════════════════════════════════════
 @app.route('/medications')

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Edit Room{% endblock %}
+{% block page_title %}Edit Room{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header"><h2>Edit Room #{{ room.RoomID }}</h2></div>
+  <div class="card-body">
+    <form method="POST" action="/rooms/edit/{{ room.RoomID }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Room Number</label>
+          <input name="room_number" value="{{ room.RoomNumber }}" required/>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select name="type" required>
+            {% for t in ['ICU', 'General', 'Surgery', 'Emergency'] %}
+            <option {% if room.Type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" required>
+            {% for s in ['Available', 'Occupied', 'Maintenance'] %}
+            <option {% if room.Status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select name="department_id" required>
+            {% for d in departments %}
+            <option value="{{ d.DepartmentID }}" {% if room.DepartmentID == d.DepartmentID %}selected{% endif %}>
+              {{ d.Name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="/rooms" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

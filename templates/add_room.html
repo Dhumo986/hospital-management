@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Add Room{% endblock %}
+{% block page_title %}Add Room{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header"><h2>Room Details</h2></div>
+  <div class="card-body">
+    <form method="POST" action="/rooms/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Room Number</label>
+          <input name="room_number" placeholder="e.g. 101A" required/>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select name="type" required>
+            <option value="">— Select Type —</option>
+            <option value="ICU">ICU</option>
+            <option value="General">General</option>
+            <option value="Surgery">Surgery</option>
+            <option value="Emergency">Emergency</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" required>
+            <option value="Available">Available</option>
+            <option value="Occupied">Occupied</option>
+            <option value="Maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select name="department_id" required>
+            <option value="">— Select Department —</option>
+            {% for d in departments %}
+            <option value="{{ d.DepartmentID }}">{{ d.Name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Add Room</button>
+        <a href="/rooms" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

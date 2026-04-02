@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Rooms{% endblock %}
+{% block page_title %}Room Management{% endblock %}
+{% block topbar_actions %}
+  <a href="/rooms/add" class="btn btn-primary">+ Add Room</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="search-bar">
+  <form method="GET" action="/rooms" style="display:flex;gap:8px">
+    <select name="status" onchange="this.form.submit()">
+      <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+      <option value="Available"   {% if status_filter == 'Available' %}selected{% endif %}>Available</option>
+      <option value="Occupied"    {% if status_filter == 'Occupied' %}selected{% endif %}>Occupied</option>
+      <option value="Maintenance" {% if status_filter == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+    </select>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>All Rooms ({{ rooms|length }})</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Room Number</th>
+          <th>Type</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rooms %}
+        <tr>
+          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ r.RoomID }}</span></td>
+          <td><strong>{{ r.RoomNumber }}</strong></td>
+          <td>{{ r.Type }}</td>
+          <td>{{ r.department.Name if r.department else '—' }}</td>
+          <td>
+            {% if r.Status == 'Available' %}<span class="badge badge-green">Available</span>
+            {% elif r.Status == 'Occupied' %}<span class="badge badge-red">Occupied</span>
+            {% else %}<span class="badge badge-yellow">Maintenance</span>{% endif %}
+          </td>
+          <td style="display:flex;gap:6px">
+            <a href="/rooms/edit/{{ r.RoomID }}" class="btn btn-sm btn-outline">Edit</a>
+            <a href="/rooms/delete/{{ r.RoomID }}" class="btn btn-sm btn-danger"
+               onclick="return confirm('Delete this room?')">Delete</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">No rooms found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
