@@ -1,199 +1,189 @@
-# Automated Data Pipeline from Web APIs
+# 🏥 Hospital Management System
+> COP 4710: Theory and Structure of Databases — Spring 2026  
+> Florida State University | Team 32
 
-**Course:** CIS 4930 — Introduction to Python (Spring 2026)  
-**Group:** 04
-
-## Group Members
-
-| Name | FSU ID |
-|---|---|
-| Thomas Schmidt | tns23 |
-| Imran Ahmed | ia24c |
-| Dhruv Upadhyay | dtu24 |
+## Team Members
+| Name | FSU ID | GitHub |
+|------|--------|--------|
+| Rafik Taleb | RT24E | [@Rafik-taleb](https://github.com/Rafik-taleb) |
+| Shezan Abdul Mujeer Chisty | SA24BD | [@shezanch](https://github.com/shezanch) |
+| Dhruv Upadhyay | DTU24 | [@Dhumo986](https://github.com/Dhumo986) |
 
 ---
 
-## Project Title
-
-**GitHub Repository Activity Tracker**
-
-## Project Description
-
-This project builds an automated Python data pipeline that collects repository metadata from the GitHub REST API for education-related Python projects. On each run, the pipeline fetches multiple pages of results, handles request errors safely, and appends structured records to a local CSV and SQLite data store for longitudinal analysis.
-
-Real-world context: this can be used to monitor trends in open-source learning resources, repository popularity, and language usage over time.
+## 📋 Project Overview
+A web-based Hospital Management System built with Flask and MySQL that manages patients, doctors, departments, appointments, medical records, and medications. The system provides a centralized platform for hospital staff to manage core operations efficiently.
 
 ---
 
-## API Documentation
+## 🗄️ Database
+- **Platform:** MySQL (hosted on Railway)
+- **Tables:** Patient, Doctor, Department, Room, Appointment, MedicalRecord, Medication, Prescribes (8 total)
 
-- GitHub REST API docs: https://docs.github.com/en/rest
-- Search repositories endpoint: https://docs.github.com/en/rest/search/search#search-repositories
-
----
-
-## Why This API
-
-The GitHub API is relevant because it provides real, high-volume public data that changes over time. It supports meaningful pagination and query parameters, making it ideal for demonstrating robust HTTP requests, JSON parsing, and incremental data collection.
-
-### API Constraints
-
-- **Rate limits:** unauthenticated requests are limited to 10 requests/minute (GitHub rate limiting applies).
-- **Pagination:** page-based (`page`, `per_page`) with finite result windows.
-- **Auth:** optional token can increase limits; this project works without auth for classroom-scale runs.
+### Entity Relationship
+- A **Patient** books many **Appointments**
+- A **Doctor** handles many **Appointments**
+- An **Appointment** uses one **Room** and generates one **MedicalRecord**
+- A **MedicalRecord** prescribes many **Medications** (via Prescribes bridge table)
+- **Doctors** and **Rooms** belong to **Departments**
 
 ---
 
-## Data Pipeline Goals
-
-1. Fetch repository data for a configurable query (default: `python education`).
-2. Collect multiple pages per run (e.g., 3–5 pages, `per_page=30`).
-3. Extract and store at least 5 meaningful fields per repository.
-4. Handle failures (timeouts/request errors) without crashing silently.
-5. Append new rows to a persistent dataset on repeated runs.
+## ⚙️ Tech Stack
+| Layer | Technology |
+|-------|-----------|
+| Backend | Flask (Python) |
+| Database | MySQL via Railway |
+| ORM | SQLAlchemy |
+| Frontend | HTML/CSS + Jinja2 |
+| Data Generation | Python Faker |
 
 ---
 
-## Repository Structure
+## 🚀 Features
 
-```text
-P2WebAPI/
-├── README.md
-├── RUN_NOTES.md
-├── ReportOfContribution.md
-├── requirements.txt
+### Basic Functions
+- ✅ Insert — Add patients, doctors, appointments, medications
+- ✅ Search — Search patients by name/phone, doctors by specialty
+- ✅ Join Query — Appointments page joins Patient, Doctor, and Room tables
+- ✅ Aggregate Query — Stats page shows appointments per doctor, patients per department
+- ✅ Update — Edit appointment status, patient info, doctor info
+- ✅ Delete — Remove patients, doctors, appointments
+
+### Advanced Feature — Smart Doctor Recommendation
+When a patient needs an appointment, instead of manually browsing doctors, the system automatically recommends available doctors by:
+- Matching the patient's required specialty to doctors
+- Checking for scheduling conflicts at the requested date and time
+- Returning a ranked list of available doctors
+
+---
+
+## 📁 Project Structure
+```
+hospital-management/
+├── app.py              # Flask routes and application logic
+├── models.py           # SQLAlchemy database models
+├── .env                # Database credentials (not committed)
 ├── .gitignore
-├── src/
-│   ├── pipeline.py          # Main orchestration script
-│   ├── api_client.py        # HTTP requests + pagination
-│   └── storage.py           # CSV/SQLite write helpers
-├── data/
-│   └── processed/
-│       ├── github_repos.csv
-│       └── github_repos.db
-└── logs/
-    └── pipeline.log
+├── templates/
+│   ├── base.html           # Base layout with sidebar
+│   ├── index.html          # Dashboard
+│   ├── patients.html       # Patient list
+│   ├── add_patient.html    # Add patient form
+│   ├── edit_patient.html   # Edit patient form
+│   ├── doctors.html        # Doctor list
+│   ├── add_doctor.html     # Add doctor form
+│   ├── edit_doctor.html    # Edit doctor form
+│   ├── appointments.html   # Appointment list
+│   ├── add_appointment.html
+│   ├── edit_appointment.html
+│   ├── medications.html    # Medication list
+│   ├── add_medication.html
+│   ├── departments.html    # Department list
+│   ├── recommend.html      # Smart Doctor Recommendation
+│   └── stats.html          # Aggregate queries & reports
+└── static/
 ```
 
 ---
 
-## Minimum Technical Features
+## 🛠️ Setup Instructions
 
-The implementation demonstrates:
+### Prerequisites
+- Python 3.10+
+- pip
 
-- `requests.get(..., params=..., timeout=...)`
-- JSON parsing via `response.json()`
-- Safe field access with `.get()` defaults
-- Pagination loop over multiple pages
-- `try/except` with `raise_for_status()` and `RequestException`
-- Conversion to `pandas.DataFrame`
-- Persistent local storage with CSV and SQLite append
+### Installation
 
-### Example Fields Collected
-
-| Field | Description |
-|---|---|
-| `run_timestamp` | When the pipeline ran |
-| `repo_id` | Unique GitHub repo ID |
-| `full_name` | Owner/repo name |
-| `html_url` | Link to repository |
-| `description` | Repo description |
-| `stargazers_count` | Number of stars |
-| `forks_count` | Number of forks |
-| `open_issues_count` | Number of open issues |
-| `language` | Primary language |
-| `created_at` | Repo creation date |
-| `updated_at` | Last update date |
-
----
-
-## Data Output
-
-- `data/processed/github_repos.csv` — appended across runs
-- `data/processed/github_repos.db` — SQLite database
-  - Table name: `repo_snapshots`
-  - Key columns: `run_timestamp`, `repo_id`, `full_name`, `stargazers_count`
-
----
-
-## How to Run
-
-From the `P2WebAPI` directory, install dependencies:
-
+**1. Clone the repository**
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/Dhumo986/hospital-management.git
+cd hospital-management
 ```
 
-Run the pipeline with defaults:
-
+**2. Create virtual environment**
 ```bash
-python3 src/pipeline.py
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-Run with custom CLI arguments (bonus feature):
-
+**3. Install dependencies**
 ```bash
-python3 src/pipeline.py --query "python machine learning" --max-pages 5 --per-page 20
+pip install flask sqlalchemy pymysql python-dotenv cryptography flask-sqlalchemy
 ```
 
-### CLI Arguments
+**4. Set up environment variables**
 
-| Argument | Default | Description |
-|---|---|---|
-| `--query` | `python education` | GitHub search query |
-| `--max-pages` | `3` | Number of pages to fetch |
-| `--per-page` | `30` | Results per page (max 100) |
-
-### Example Console Output
-
+Create a `.env` file in the project root (get credentials from team):
 ```
-2026-04-09 22:20:37,519 [INFO] Starting pipeline run...
-2026-04-09 22:20:37,519 [INFO] Query: python education
-2026-04-09 22:20:38,724 [INFO] fetched page 1 — 30 items
-2026-04-09 22:20:39,887 [INFO] fetched page 2 — 30 items
-2026-04-09 22:20:41,051 [INFO] fetched page 3 — 30 items
-2026-04-09 22:20:41,053 [INFO] Collected 90 repositories.
-2026-04-09 22:20:41,067 [INFO] Appended 90 rows to data/processed/github_repos.csv
-2026-04-09 22:20:41,072 [INFO] Pipeline completed successfully.
+DB_HOST=gondola.proxy.rlwy.net
+DB_PORT=33433
+DB_USER=root
+DB_PASSWORD=YOUR_PASSWORD
+DB_NAME=railway
 ```
 
----
-
-## Error Handling Strategy
-
-- Timeout handling with clear fallback message
-- Request-level exception handling (`requests.exceptions.RequestException`)
-- Status validation with `response.raise_for_status()`
-- Graceful skip/continue behavior instead of silent failure
-- Log persistence to `logs/pipeline.log`
-
----
-
-## Automation Hook
-
-Example cron schedule (every day at 8:00 AM):
-
+**5. Run the application**
+```bash
+python3 app.py
 ```
-0 8 * * * /usr/bin/python3 /path/to/P2WebAPI/src/pipeline.py
+
+**6. Open in browser**
+```
+http://127.0.0.1:5000
 ```
 
 ---
 
-## Team Workflow
+## 📊 Key SQL Queries
 
-- Feature branches per member, PR-based merges into main
-- Commit history reflects contributions from all members
+### Join Query — Appointments with Patient, Doctor, Room
+```sql
+SELECT a.AppointmentID, a.Date, a.Time, a.Status,
+       p.Name AS Patient, d.Name AS Doctor, r.RoomNumber
+FROM Appointment a
+JOIN Patient p ON a.PatientID = p.PatientID
+JOIN Doctor d ON a.DoctorID = d.DoctorID
+JOIN Room r ON a.RoomID = r.RoomID;
+```
 
-| Role | Responsibility |
-|---|---|
-| API client lead | HTTP requests, pagination, error handling |
-| Data/storage lead | DataFrame, CSV/SQLite append logic |
-| Pipeline/orchestration lead | pipeline.py, repo setup, CLI args, documentation |
+### Aggregate Query — Appointments per Doctor
+```sql
+SELECT d.Name, d.Specialty, COUNT(a.AppointmentID) AS Total
+FROM Doctor d
+JOIN Appointment a ON d.DoctorID = a.DoctorID
+GROUP BY d.DoctorID
+ORDER BY Total DESC;
+```
+
+### Aggregate Query — Unique Patients per Department
+```sql
+SELECT dept.Name, COUNT(DISTINCT a.PatientID) AS Patients
+FROM Department dept
+JOIN Doctor d ON dept.DepartmentID = d.DepartmentID
+JOIN Appointment a ON d.DoctorID = a.DoctorID
+GROUP BY dept.DepartmentID
+ORDER BY Patients DESC;
+```
 
 ---
 
-## Stretch Goals (Bonus)
+## 👥 Labor Division
+| Member                     | Modules                       |
+|----------------------------|-------------------------------|
+| Rafik Taleb                | Appointments, Room Management |
+| Shezan Abdul Mujeer Chisty | Patients, Medical Records     |
+| Dhruv Upadhyay             | Doctors, Medications, Departments, Smart Doctor Recommendation, Stats & Reports |
 
-- ✅ CLI arguments (`--query`, `--max-pages`, `--per-page`) — implemented in `pipeline.py`
-- Add retry/backoff for temporary API failures
-- Add a mini EDA notebook with 1–2 plots from generated CSV
+---
+
+## 📅 Timeline
+| Milestone | Date |
+|-----------|------|
+| Stage 2: ER Diagram | Feb 27, 2026 |
+| Stage 3: Development Plan | Mar 13, 2026 |
+| Database + Fake Data | Mar 30, 2026 |
+| Flask App + Templates | Apr 5, 2026 |
+| Advanced Feature | Apr 10, 2026 |
+| Stats & Reports | Apr 14, 2026 |
+| Demo + Final Report | Apr 24, 2026 |
