@@ -1,3 +1,4 @@
+from urllib.parse import quote_plus
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from models import db, Patient, Doctor, Department, Room, Appointment, MedicalRecord, Medication, Prescribes
@@ -9,9 +10,10 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "hospital_secret_key"
 
-# Database connection
+password = quote_plus(os.getenv("DB_PASSWORD"))
+
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
+    f"mysql+pymysql://{os.getenv('DB_USER')}:{password}"
     f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -86,6 +88,82 @@ def delete_patient(id):
     db.session.commit()
     flash('Patient deleted.', 'warning')
     return redirect(url_for('patients'))
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MEDICAL RECORD ROUTES (Shezan's module)
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route('/records')
+def medical_records():
+    search = request.args.get('search', '')
+    if search:
+   
+        results = (MedicalRecord.query
+                   .join(Appointment)
+                   .join(Patient)
+                   .filter(Patient.Name.ilike(f'%{search}%'))
+                   .all())
+    else:
+        results = MedicalRecord.query.all()
+    return render_template('medical_records.html', records=results, search=search)
+
+
+@app.route('/records/add', methods=['GET', 'POST'])
+def add_record():
+   
+    completed_appointments = (Appointment.query
+                               .filter_by(Status='Completed')
+                               .outerjoin(MedicalRecord)
+                               .filter(MedicalRecord.RecordID == None)
+                               .all())
+    medications = Medication.query.all()
+
+    if request.method == 'POST':
+        record = MedicalRecord(
+            Diagnosis=request.form['diagnosis'],
+            Treatment=request.form['treatment'],
+            Notes=request.form['notes'],
+            Date=request.form['date'] or None,
+            AppointmentID=request.form['appointment_id']
+        )
+        db.session.add(record)
+        db.session.flush()  
+
+        
+        med_ids = request.form.getlist('medication_ids')
+        instructions_list = request.form.getlist('instructions')
+        for med_id, instruction in zip(med_ids, instructions_list):
+            if med_id:
+                p = Prescribes(
+                    RecordID=record.RecordID,
+                    MedicationID=int(med_id),
+                    Instructions=instruction
+                )
+                db.session.add(p)
+
+        db.session.commit()
+        flash('Medical record created successfully!', 'success')
+        return redirect(url_for('medical_records'))
+
+    return render_template('add_record.html',
+                           appointments=completed_appointments,
+                           medications=medications)
+
+
+@app.route('/records/view/<int:id>')
+def view_record(id):
+    record = MedicalRecord.query.get_or_404(id)
+    return render_template('view_record.html', record=record)
+
+
+@app.route('/records/delete/<int:id>')
+def delete_record(id):
+    record = MedicalRecord.query.get_or_404(id)
+    
+    Prescribes.query.filter_by(RecordID=record.RecordID).delete()
+    db.session.delete(record)
+    db.session.commit()
+    flash('Medical record deleted.', 'warning')
+    return redirect(url_for('medical_records'))
 
 # ══════════════════════════════════════════════════════════════════════════════
 # DOCTOR ROUTES (Dhruv's module)
@@ -252,4 +330,6 @@ def recommend():
 
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
