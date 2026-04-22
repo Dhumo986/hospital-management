@@ -347,6 +347,33 @@ def departments():
     results = Department.query.all()
     return render_template('departments.html', departments=results)
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PRESCRIPTIONS ROUTES (Shezan's module)
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route('/prescriptions', methods=['GET', 'POST'])
+def prescriptions():
+    prescriptions = []
+    patient = None
+    searched = False
+    if request.method == 'POST':
+        name = request.form['name'].strip()
+        dob  = request.form['dob']
+        patient = Patient.query.filter(
+            Patient.Name.ilike(f'%{name}%'),
+            Patient.DOB == dob
+        ).first()
+        searched = True
+        if patient:
+            prescriptions = (
+                Prescribes.query
+                .join(MedicalRecord, Prescribes.RecordID == MedicalRecord.RecordID)
+                .join(Appointment, MedicalRecord.AppointmentID == Appointment.AppointmentID)
+                .filter(Appointment.PatientID == patient.PatientID)
+                .all()
+            )
+    return render_template('prescriptions.html', prescriptions=prescriptions, patient=patient, searched=searched)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # ADVANCED FEATURE: Smart Doctor Recommendation
 # ══════════════════════════════════════════════════════════════════════════════
@@ -552,3 +579,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+

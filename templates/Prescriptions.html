@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Prescriptions{% endblock %}
+{% block page_title %}Prescriptions Lookup{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width:500px;margin-bottom:24px">
+  <div class="card-header"><h2>Patient Lookup</h2></div>
+  <div class="card-body">
+    <form method="POST" action="/prescriptions">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Patient Name</label>
+          <input name="name" placeholder="e.g. John Smith" required/>
+        </div>
+        <div class="form-group full">
+          <label>Date of Birth</label>
+          <input name="dob" type="date" required/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Look Up Prescriptions</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if searched %}
+  {% if patient %}
+    <div class="card">
+      <div class="card-header">
+        <h2>Prescriptions for {{ patient.Name }}</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Record ID</th>
+              <th>Doctor</th>
+              <th>Medication</th>
+              <th>Dosage</th>
+              <th>Instructions</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in prescriptions %}
+            <tr>
+              <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ p.RecordID }}</span></td>
+              <td>{{ p.record.appointment.doctor.Name if p.record and p.record.appointment and p.record.appointment.doctor else '—' }}</td>
+              <td><strong>{{ p.medication.Name if p.medication else '—' }}</strong></td>
+              <td>{{ p.medication.Dosage if p.medication else '—' }}</td>
+              <td>{{ p.Instructions or '—' }}</td>
+              <td>{{ p.record.Date if p.record else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">No prescriptions found for this patient.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-danger">No patient found with that name and date of birth. Please try again.</div>
+  {% endif %}
+{% endif %}
+
+{% endblock %}
