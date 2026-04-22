@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Medical Records{% endblock %}
+{% block page_title %}Medical Records{% endblock %}
+{% block topbar_actions %}
+  <a href="/records/add" class="btn btn-primary">+ New Record</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>All Medical Records ({{ records|length }})</h2>
+    <form method="GET" action="/records" class="search-bar" style="margin:0">
+      <input name="search" placeholder="Search by patient name..." value="{{ search }}"/>
+      <button type="submit" class="btn btn-outline">Search</button>
+      {% if search %}<a href="/records" class="btn btn-outline">Clear</a>{% endif %}
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Date</th>
+          <th>Diagnosis</th>
+          <th>Treatment</th>
+          <th>Medications</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ r.RecordID }}</span></td>
+          <td><strong>{{ r.appointment.patient.Name }}</strong></td>
+          <td>{{ r.appointment.doctor.Name }}</td>
+          <td>{{ r.Date or '—' }}</td>
+          <td>{{ r.Diagnosis or '—' }}</td>
+          <td>{{ r.Treatment or '—' }}</td>
+          <td>
+            {% if r.prescriptions %}
+              {% for rx in r.prescriptions %}
+                <span class="badge badge-blue">{{ rx.medication.Name }}</span>
+              {% endfor %}
+            {% else %}
+              <span style="color:var(--text-muted)">None</span>
+            {% endif %}
+          </td>
+          <td style="display:flex;gap:6px">
+            <a href="/records/view/{{ r.RecordID }}" class="btn btn-sm btn-outline">View</a>
+            <a href="/records/delete/{{ r.RecordID }}" class="btn btn-sm btn-danger"
+               onclick="return confirm('Delete this record?')">Delete</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px">
+            No medical records found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

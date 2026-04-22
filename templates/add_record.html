@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}New Medical Record{% endblock %}
+{% block page_title %}Create Medical Record{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:760px">
+  <div class="card-header"><h2>Medical Record Information</h2></div>
+  <div class="card-body">
+    <form method="POST" action="/records/add">
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label>Appointment (Completed only)</label>
+          <select name="appointment_id" required>
+            <option value="">— Select Appointment —</option>
+            {% for a in appointments %}
+            <option value="{{ a.AppointmentID }}">
+              #{{ a.AppointmentID }} · {{ a.patient.Name }} with Dr. {{ a.doctor.Name }} on {{ a.Date }}
+            </option>
+            {% endfor %}
+          </select>
+          {% if not appointments %}
+          <small style="color:var(--text-muted)">
+            No eligible appointments. Mark an appointment as "Completed" first.
+          </small>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>Record Date</label>
+          <input name="date" type="date"/>
+        </div>
+
+        <div class="form-group">
+          <label>Diagnosis</label>
+          <input name="diagnosis" placeholder="e.g. Hypertension"/>
+        </div>
+
+        <div class="form-group full">
+          <label>Treatment</label>
+          <input name="treatment" placeholder="e.g. Prescribed lisinopril, rest"/>
+        </div>
+
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea name="notes" placeholder="Additional observations or instructions..."></textarea>
+        </div>
+      </div>
+
+      <!-- Prescriptions section -->
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">
+            Prescriptions
+          </h3>
+          <button type="button" class="btn btn-outline btn-sm" onclick="addMedRow()">+ Add Medication</button>
+        </div>
+
+        <div id="med-rows" style="display:flex;flex-direction:column;gap:10px">
+          <!-- rows added dynamically -->
+        </div>
+
+        <p id="no-med-msg" style="font-size:13px;color:var(--text-muted);margin-top:8px">
+          No medications added yet.
+        </p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Record</button>
+        <a href="/records" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const medications = {{ medications | tojson }};
+
+  function buildOptions() {
+    return medications.map(m =>
+      `<option value="${m.MedicationID}">${m.Name} (${m.Dosage || 'no dosage'})</option>`
+    ).join('');
+  }
+
+  function addMedRow() {
+    document.getElementById('no-med-msg').style.display = 'none';
+    const container = document.getElementById('med-rows');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:center';
+    row.innerHTML = `
+      <select name="medication_ids">
+        <option value="">— Select Medication —</option>
+        ${buildOptions()}
+      </select>
+      <input name="instructions" placeholder="Instructions (e.g. 1 tablet twice daily)"/>
+      <button type="button" class="btn btn-sm btn-danger" onclick="this.parentElement.remove(); checkEmpty()">✕</button>
+    `;
+    container.appendChild(row);
+  }
+
+  function checkEmpty() {
+    const rows = document.getElementById('med-rows').children;
+    document.getElementById('no-med-msg').style.display = rows.length === 0 ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

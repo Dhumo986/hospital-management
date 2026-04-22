@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Medical Record #{{ record.RecordID }}{% endblock %}
+{% block page_title %}Medical Record Detail{% endblock %}
+{% block topbar_actions %}
+  <a href="/records" class="btn btn-outline">← Back to Records</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:760px;display:flex;flex-direction:column;gap:20px">
+
+  <!-- Record summary card -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Record #{{ record.RecordID }}</h2>
+      <span class="badge badge-green">{{ record.Date or 'No date' }}</span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Patient</label>
+          <p style="font-size:14px;font-weight:500">{{ record.appointment.patient.Name }}</p>
+        </div>
+        <div class="form-group">
+          <label>Doctor</label>
+          <p style="font-size:14px;font-weight:500">Dr. {{ record.appointment.doctor.Name }}</p>
+        </div>
+        <div class="form-group">
+          <label>Appointment Date</label>
+          <p style="font-size:14px">{{ record.appointment.Date }}</p>
+        </div>
+        <div class="form-group">
+          <label>Appointment Reason</label>
+          <p style="font-size:14px">{{ record.appointment.Reason or '—' }}</p>
+        </div>
+        <div class="form-group full">
+          <label>Diagnosis</label>
+          <p style="font-size:14px">{{ record.Diagnosis or '—' }}</p>
+        </div>
+        <div class="form-group full">
+          <label>Treatment</label>
+          <p style="font-size:14px">{{ record.Treatment or '—' }}</p>
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <p style="font-size:14px;white-space:pre-wrap">{{ record.Notes or '—' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prescriptions card -->
+  <div class="card">
+    <div class="card-header"><h2>Prescriptions</h2></div>
+    {% if record.prescriptions %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Medication</th>
+            <th>Dosage</th>
+            <th>Manufacturer</th>
+            <th>Instructions</th>
+            <th>Side Effects</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rx in record.prescriptions %}
+          <tr>
+            <td><strong>{{ rx.medication.Name }}</strong></td>
+            <td><span class="badge badge-blue">{{ rx.medication.Dosage or '—' }}</span></td>
+            <td>{{ rx.medication.Manufacturer or '—' }}</td>
+            <td>{{ rx.Instructions or '—' }}</td>
+            <td style="color:var(--text-muted);font-size:12px">{{ rx.medication.SideEffects or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+      <p style="color:var(--text-muted);font-size:13px">No medications prescribed for this record.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="display:flex;gap:10px">
+    <a href="/records/delete/{{ record.RecordID }}" class="btn btn-danger"
+       onclick="return confirm('Delete this record?')">Delete Record</a>
+  </div>
+
+</div>
+{% endblock %}
