@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}SQL Query{% endblock %}
+{% block page_title %}SQL Query Runner{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header"><h2>🔍 Run SQL Query</h2></div>
+  <div class="card-body">
+    <p style="color:var(--text-muted);margin-bottom:16px;font-size:13.5px">
+      Only SELECT queries are allowed. Examples: <code>SELECT * FROM Patient LIMIT 10</code> or <code>SELECT * FROM Doctor</code>
+    </p>
+    <form method="POST" action="/query">
+      <div class="form-group full" style="margin-bottom:16px">
+        <label>SQL Query</label>
+        <textarea name="query" rows="4" placeholder="SELECT * FROM Patient LIMIT 10" style="font-family:'DM Mono',monospace;font-size:13px">{{ query or "" }}</textarea>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <button type="submit" class="btn btn-primary">▶ Run Query</button>
+        <a href="/query" class="btn btn-outline">Clear</a>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <span style="font-size:11px;color:var(--text-muted);font-weight:600;margin-right:4px">QUICK QUERIES:</span>
+        {% for label, q in quick_queries %}
+        <button type="submit" name="query" value="{{ q }}" class="btn btn-sm btn-outline" style="font-size:11px">{{ label }}</button>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if results is not none %}
+<div class="card">
+  <div class="card-header">
+    <h2>Results {% if results %}({{ results|length }} rows){% endif %}</h2>
+  </div>
+  {% if results %}
+  <div class="table-wrap"><table>
+    <thead><tr>{% for col in columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for row in results %}
+    <tr>{% for cell in row %}<td>{{ cell if cell is not none else "NULL" }}</td>{% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="card-body" style="color:var(--text-muted);text-align:center;padding:32px">No results returned.</div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

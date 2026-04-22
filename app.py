@@ -301,5 +301,174 @@ def recommend():
     return render_template('recommend.html', recommended=recommended, specialties=specialties)
 
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SQL QUERY RUNNER
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route('/query', methods=['GET', 'POST'])
+def query_runner():
+    results = None
+    columns = []
+    error = None
+    query = None
+
+    quick_queries = [
+        ("All Patients", "SELECT * FROM Patient LIMIT 20"),
+        ("All Doctors", "SELECT * FROM Doctor LIMIT 20"),
+        ("All Appointments", "SELECT AppointmentID, Date, Time, Status, PatientID, DoctorID FROM Appointment LIMIT 20"),
+        ("Appointments + Patient + Doctor", "SELECT a.AppointmentID, a.Date, a.Time, a.Status, p.Name AS Patient, d.Name AS Doctor, r.RoomNumber FROM Appointment a JOIN Patient p ON a.PatientID=p.PatientID JOIN Doctor d ON a.DoctorID=d.DoctorID JOIN Room r ON a.RoomID=r.RoomID LIMIT 20"),
+        ("Appointments per Doctor", "SELECT d.Name, d.Specialty, COUNT(a.AppointmentID) AS Total FROM Doctor d JOIN Appointment a ON d.DoctorID=a.DoctorID GROUP BY d.DoctorID ORDER BY Total DESC"),
+        ("Patients per Department", "SELECT dept.Name, COUNT(DISTINCT a.PatientID) AS Patients FROM Department dept JOIN Doctor d ON dept.DepartmentID=d.DepartmentID JOIN Appointment a ON d.DoctorID=a.DoctorID GROUP BY dept.DepartmentID ORDER BY Patients DESC"),
+        ("Top Medications", "SELECT m.Name, COUNT(p.MedicationID) AS Prescribed FROM Medication m JOIN Prescribes p ON m.MedicationID=p.MedicationID GROUP BY m.MedicationID ORDER BY Prescribed DESC"),
+        ("All Departments", "SELECT * FROM Department"),
+        ("All Medications", "SELECT * FROM Medication"),
+        ("All Rooms", "SELECT * FROM Room"),
+    ]
+
+    if request.method == 'POST':
+        query = request.form.get('query', '').strip()
+        if query:
+            if not query.lower().startswith('select'):
+                error = "Only SELECT queries are allowed."
+            else:
+                try:
+                    from sqlalchemy import text
+                    with db.engine.connect() as conn:
+                        result = conn.execute(text(query))
+                        columns = list(result.keys())
+                        results = [list(row) for row in result.fetchall()]
+                except Exception as e:
+                    error = f"Query error: {str(e)}"
+
+    return render_template('query.html', results=results, columns=columns, error=error, query=query, quick_queries=quick_queries)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# REPORTS — User Friendly Query Interface
+# ══════════════════════════════════════════════════════════════════════════════
+@app.route('/reports', methods=['GET', 'POST'])
+def reports():
+    from sqlalchemy import text
+    results = None
+    columns = []
+    error = None
+    result_title = ""
+
+    if request.method == 'POST':
+        query_type = request.form.get('query_type')
+
+        try:
+            with db.engine.connect() as conn:
+
+                # JOIN QUERY 1: Full Appointment Details
+                if query_type == 'appointments_full':
+                    status = request.form.get('status', '')
+                    result_title = "Full Appointment Details"
+                    if status:
+                        sql = text("""
+                            SELECT a.AppointmentID, a.Date, a.Time, a.Status,
+                                   p.Name AS Patient, d.Name AS Doctor,
+                                   d.Specialty, r.RoomNumber, r.Type AS RoomType
+                            FROM Appointment a
+                            JOIN Patient p ON a.PatientID = p.PatientID
+                            JOIN Doctor d ON a.DoctorID = d.DoctorID
+                            JOIN Room r ON a.RoomID = r.RoomID
+                            WHERE a.Status = :status
+                            ORDER BY a.Date DESC
+                            LIMIT 50
+                        """)
+                        result = conn.execute(sql, {"status": status})
+                    else:
+                        sql = text("""
+                            SELECT a.AppointmentID, a.Date, a.Time, a.Status,
+                                   p.Name AS Patient, d.Name AS Doctor,
+                                   d.Specialty, r.RoomNumber, r.Type AS RoomType
+                            FROM Appointment a
+                            JOIN Patient p ON a.PatientID = p.PatientID
+                            JOIN Doctor d ON a.DoctorID = d.DoctorID
+                            JOIN Room r ON a.RoomID = r.RoomID
+                            ORDER BY a.Date DESC
+                            LIMIT 50
+                        """)
+                        result = conn.execute(sql)
+                    columns = list(result.keys())
+                    results = [list(row) for row in result.fetchall()]
+
+                # JOIN QUERY 2: Patient Medical History
+                elif query_type == 'patient_history':
+                    name = request.form.get('patient_name', '')
+                    result_title = f"Medical History for patients matching: {name}"
+                    sql = text("""
+                        SELECT p.Name AS Patient, a.Date, a.Reason, a.Status,
+                               d.Name AS Doctor, d.Specialty,
+                               COALESCE(mr.Diagnosis, 'No record') AS Diagnosis,
+                               COALESCE(mr.Treatment, 'No record') AS Treatment
+                        FROM Patient p
+                        JOIN Appointment a ON p.PatientID = a.PatientID
+                        JOIN Doctor d ON a.DoctorID = d.DoctorID
+                        LEFT JOIN MedicalRecord mr ON a.AppointmentID = mr.AppointmentID
+                        WHERE p.Name LIKE :name
+                        ORDER BY a.Date DESC
+                        LIMIT 50
+                    """)
+                    result = conn.execute(sql, {"name": f"%{name}%"})
+                    columns = list(result.keys())
+                    results = [list(row) for row in result.fetchall()]
+
+                # AGGREGATE QUERY 1: Busiest Doctors
+                elif query_type == 'busiest_doctors':
+                    specialty = request.form.get('specialty', '')
+                    result_title = "Busiest Doctors by Appointment Count"
+                    if specialty:
+                        sql = text("""
+                            SELECT d.Name AS Doctor, d.Specialty,
+                                   dept.Name AS Department,
+                                   COUNT(a.AppointmentID) AS TotalAppointments
+                            FROM Doctor d
+                            JOIN Appointment a ON d.DoctorID = a.DoctorID
+                            JOIN Department dept ON d.DepartmentID = dept.DepartmentID
+                            WHERE d.Specialty = :specialty
+                            GROUP BY d.DoctorID, d.Name, d.Specialty, dept.Name
+                            ORDER BY TotalAppointments DESC
+                        """)
+                        result = conn.execute(sql, {"specialty": specialty})
+                    else:
+                        sql = text("""
+                            SELECT d.Name AS Doctor, d.Specialty,
+                                   dept.Name AS Department,
+                                   COUNT(a.AppointmentID) AS TotalAppointments
+                            FROM Doctor d
+                            JOIN Appointment a ON d.DoctorID = a.DoctorID
+                            JOIN Department dept ON d.DepartmentID = dept.DepartmentID
+                            GROUP BY d.DoctorID, d.Name, d.Specialty, dept.Name
+                            ORDER BY TotalAppointments DESC
+                        """)
+                        result = conn.execute(sql)
+                    columns = list(result.keys())
+                    results = [list(row) for row in result.fetchall()]
+
+                # AGGREGATE QUERY 2: Department Patient Load
+                elif query_type == 'dept_load':
+                    result_title = "Patient Load per Department"
+                    sql = text("""
+                        SELECT dept.Name AS Department,
+                               COUNT(DISTINCT a.PatientID) AS UniquePatients,
+                               COUNT(a.AppointmentID) AS TotalAppointments
+                        FROM Department dept
+                        JOIN Doctor d ON dept.DepartmentID = d.DepartmentID
+                        JOIN Appointment a ON d.DoctorID = a.DoctorID
+                        GROUP BY dept.DepartmentID, dept.Name
+                        ORDER BY UniquePatients DESC
+                    """)
+                    result = conn.execute(sql)
+                    columns = list(result.keys())
+                    results = [list(row) for row in result.fetchall()]
+
+        except Exception as e:
+            error = str(e)
+
+    return render_template('reports.html', results=results, columns=columns,
+                           error=error, result_title=result_title)
+
 if __name__ == '__main__':
     app.run(debug=True)

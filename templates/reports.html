@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Reports & Insights{% endblock %}
+{% block page_title %}Reports & Insights{% endblock %}
+
+{% block content %}
+
+<!-- JOIN QUERIES SECTION -->
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header">
+    <h2>🔗 Join Queries</h2>
+  </div>
+  <div class="card-body">
+    <p style="color:var(--text-muted);margin-bottom:20px;font-size:13.5px">
+      These reports combine data from multiple tables to give you a complete picture.
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <!-- Join Query 1 -->
+      <div class="card" style="border:1px solid var(--border)">
+        <div class="card-header" style="background:var(--primary-light)">
+          <h2 style="color:var(--primary)">📅 Full Appointment Details</h2>
+        </div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+            Shows every appointment with the patient name, doctor name, specialty, and room number — all in one view.
+          </p>
+          <form method="POST" action="/reports">
+            <input type="hidden" name="query_type" value="appointments_full"/>
+            <div class="form-group" style="margin-bottom:12px">
+              <label>Filter by Status (optional)</label>
+              <select name="status">
+                <option value="">All Statuses</option>
+                <option>Scheduled</option>
+                <option>Completed</option>
+                <option>Cancelled</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">🔍 Run Report</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Join Query 2 -->
+      <div class="card" style="border:1px solid var(--border)">
+        <div class="card-header" style="background:var(--primary-light)">
+          <h2 style="color:var(--primary)">🧾 Patient Medical History</h2>
+        </div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+            Look up a patient by name and see all their appointments, doctors visited, diagnoses, and treatments.
+          </p>
+          <form method="POST" action="/reports">
+            <input type="hidden" name="query_type" value="patient_history"/>
+            <div class="form-group" style="margin-bottom:12px">
+              <label>Patient Name (or part of name)</label>
+              <input name="patient_name" placeholder="e.g. John" required/>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">🔍 Search History</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- AGGREGATE QUERIES SECTION -->
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header">
+    <h2>📊 Aggregate Reports</h2>
+  </div>
+  <div class="card-body">
+    <p style="color:var(--text-muted);margin-bottom:20px;font-size:13.5px">
+      These reports summarize and count data across the entire database.
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <!-- Aggregate Query 1 -->
+      <div class="card" style="border:1px solid var(--border)">
+        <div class="card-header" style="background:#f0fff4">
+          <h2 style="color:#276749">🩺 Busiest Doctors</h2>
+        </div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+            Ranks all doctors by total number of appointments. Shows who handles the most patients.
+          </p>
+          <form method="POST" action="/reports">
+            <input type="hidden" name="query_type" value="busiest_doctors"/>
+            <div class="form-group" style="margin-bottom:12px">
+              <label>Filter by Specialty (optional)</label>
+              <select name="specialty">
+                <option value="">All Specialties</option>
+                <option>Cardiologist</option>
+                <option>Neurologist</option>
+                <option>Orthopedic Surgeon</option>
+                <option>Emergency Physician</option>
+                <option>General Practitioner</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-success" style="width:100%">📊 Run Report</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Aggregate Query 2 -->
+      <div class="card" style="border:1px solid var(--border)">
+        <div class="card-header" style="background:#fffbeb">
+          <h2 style="color:#744210">🏥 Department Patient Load</h2>
+        </div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+            Shows how many unique patients each department has served. Helps identify which departments are most active.
+          </p>
+          <form method="POST" action="/reports">
+            <input type="hidden" name="query_type" value="dept_load"/>
+            <button type="submit" class="btn btn-outline" style="width:100%;border-color:#d69e2e;color:#744210">📊 Run Report</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+{% if results is not none %}
+<div class="card">
+  <div class="card-header">
+    <h2>{{ result_title }} — {{ results|length }} rows</h2>
+  </div>
+  {% if results %}
+  <div class="table-wrap"><table>
+    <thead><tr>{% for col in columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for row in results %}
+    <tr>{% for cell in row %}<td>{{ cell if cell is not none else "—" }}</td>{% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="card-body" style="text-align:center;color:var(--text-muted);padding:32px">No results found.</div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% endblock %}
