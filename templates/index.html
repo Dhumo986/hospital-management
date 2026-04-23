@@ -1,43 +1,39 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — Hospital MS{% endblock %}
+{% block title %}Dashboard{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-icon">👤</div>
-    <div class="stat-label">Total Patients</div>
-    <div class="stat-value">{{ stats.patients }}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon">🩺</div>
-    <div class="stat-label">Total Doctors</div>
-    <div class="stat-value">{{ stats.doctors }}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon">📅</div>
-    <div class="stat-label">Appointments</div>
-    <div class="stat-value">{{ stats.appointments }}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon">🏥</div>
-    <div class="stat-label">Departments</div>
-    <div class="stat-value">{{ stats.departments }}</div>
-  </div>
+
+<!-- Hero Banner -->
+<div style="
+  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.6)),
+  url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=1200&q=80') center/cover no-repeat;
+  border-radius: 12px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 60px 36px;
+  margin-bottom: 28px;
+  color: white;
+">
+  <h1 style="font-size:28px;font-weight:700;margin-bottom:8px;letter-spacing:-0.5px">Welcome to Hospital MS</h1>
+  <p style="font-size:14px;opacity:0.85;max-width:500px">A centralized platform for managing patients, doctors, appointments, and medical records at Florida State University — Team 32, COP 4710.</p>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2>Quick Navigation</h2>
-  </div>
-  <div class="card-body">
-    <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:12px;">
-      <a href="/patients/add" class="btn btn-primary">+ Add Patient</a>
-      <a href="/doctors/add" class="btn btn-primary">+ Add Doctor</a>
-      <a href="/appointments/add" class="btn btn-primary">+ Add Appointment</a>
-      <a href="/medications/add" class="btn btn-outline">+ Add Medication</a>
-      <a href="/recommend" class="btn btn-success">⭐ Recommend Doctor</a>
-    </div>
-  </div>
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon">👤</div><div class="stat-label">Total Patients</div><div class="stat-value">{{ stats.patients }}</div></div>
+  <div class="stat-card"><div class="stat-icon">🩺</div><div class="stat-label">Total Doctors</div><div class="stat-value">{{ stats.doctors }}</div></div>
+  <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-label">Appointments</div><div class="stat-value">{{ stats.appointments }}</div></div>
+  <div class="stat-card"><div class="stat-icon">🏥</div><div class="stat-label">Departments</div><div class="stat-value">{{ stats.departments }}</div></div>
 </div>
+
+<div class="card"><div class="card-header"><h2>Quick Navigation</h2></div>
+<div class="card-body"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+  <a href="/patients/add" class="btn btn-primary">+ Add Patient</a>
+  <a href="/doctors/add" class="btn btn-primary">+ Add Doctor</a>
+  <a href="/appointments/add" class="btn btn-primary">+ Schedule Appointment</a>
+  <a href="/medications/add" class="btn btn-outline">+ Add Medication</a>
+  <a href="/recommend" class="btn btn-success">⭐ Recommend Doctor</a>
+</div></div></div>
 {% endblock %}

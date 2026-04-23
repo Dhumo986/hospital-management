@@ -321,8 +321,21 @@ def delete_room(id):
 # ══════════════════════════════════════════════════════════════════════════════
 @app.route('/medications')
 def medications():
-    results = Medication.query.all()
-    return render_template('medications.html', medications=results)
+    import re
+    search = request.args.get('search', '')
+    sort = request.args.get('sort', '')
+    query = Medication.query
+    if search:
+        query = query.filter(Medication.Name.ilike(f'%{search}%'))
+    results = query.all()
+    def dosage_key(m):
+        nums = re.findall(r'[\d.]+', m.Dosage or '')
+        return float(nums[0]) if nums else 0
+    if sort == 'asc':
+        results = sorted(results, key=dosage_key)
+    elif sort == 'desc':
+        results = sorted(results, key=dosage_key, reverse=True)
+    return render_template('medications.html', medications=results, search=search, sort=sort)
 
 @app.route('/medications/add', methods=['GET', 'POST'])
 def add_medication():
@@ -471,13 +484,11 @@ def reports():
                     result_title = "Full Appointment Details"
                     if status:
                         sql = text("""
-                            SELECT a.AppointmentID, a.Date, a.Time, a.Status,
-                                   p.Name AS Patient, d.Name AS Doctor,
-                                   d.Specialty, r.RoomNumber, r.Type AS RoomType
+                            SELECT a.AppointmentID, p.PatientID, p.Name AS PatientName,
+                                   d.LicenseNumber, a.Date, a.Status
                             FROM Appointment a
                             JOIN Patient p ON a.PatientID = p.PatientID
                             JOIN Doctor d ON a.DoctorID = d.DoctorID
-                            JOIN Room r ON a.RoomID = r.RoomID
                             WHERE a.Status = :status
                             ORDER BY a.Date DESC
                             LIMIT 50
@@ -485,13 +496,11 @@ def reports():
                         result = conn.execute(sql, {"status": status})
                     else:
                         sql = text("""
-                            SELECT a.AppointmentID, a.Date, a.Time, a.Status,
-                                   p.Name AS Patient, d.Name AS Doctor,
-                                   d.Specialty, r.RoomNumber, r.Type AS RoomType
+                            SELECT a.AppointmentID, p.PatientID, p.Name AS PatientName,
+                                   d.LicenseNumber, a.Date, a.Status
                             FROM Appointment a
                             JOIN Patient p ON a.PatientID = p.PatientID
                             JOIN Doctor d ON a.DoctorID = d.DoctorID
-                            JOIN Room r ON a.RoomID = r.RoomID
                             ORDER BY a.Date DESC
                             LIMIT 50
                         """)
@@ -566,6 +575,30 @@ def reports():
                         ORDER BY UniquePatients DESC
                     """)
                     result = conn.execute(sql)
+                    columns = list(result.keys())
+                    results = [list(row) for row in result.fetchall()]
+
+
+                # DOSAGE FILTER QUERY
+                elif query_type == 'dosage_filter':
+                    order = request.form.get('dosage_order', 'asc')
+                    manufacturer = request.form.get('manufacturer', '')
+                    result_title = f"Medications sorted by Dosage ({'Low to High' if order == 'asc' else 'High to Low'})"
+                    if manufacturer:
+                        sql = text("""
+                            SELECT Name, Dosage, Manufacturer, SideEffects,
+                                   CAST(REGEXP_REPLACE(Dosage, '[^0-9.]', '') AS DECIMAL(10,2)) AS DosageNum
+                            FROM Medication
+                            WHERE Manufacturer = :manufacturer
+                            ORDER BY DosageNum """ + ("ASC" if order == "asc" else "DESC"))
+                        result = conn.execute(sql, {"manufacturer": manufacturer})
+                    else:
+                        sql = text("""
+                            SELECT Name, Dosage, Manufacturer, SideEffects,
+                                   CAST(REGEXP_REPLACE(Dosage, '[^0-9.]', '') AS DECIMAL(10,2)) AS DosageNum
+                            FROM Medication
+                            ORDER BY DosageNum """ + ("ASC" if order == "asc" else "DESC"))
+                        result = conn.execute(sql)
                     columns = list(result.keys())
                     results = [list(row) for row in result.fetchall()]
 

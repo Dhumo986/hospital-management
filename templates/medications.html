@@ -1,32 +1,52 @@
 {% extends "base.html" %}
 {% block title %}Medications{% endblock %}
 {% block page_title %}Medications{% endblock %}
-{% block topbar_actions %}
-  <a href="/medications/add" class="btn btn-primary">+ Add Medication</a>
-{% endblock %}
+{% block topbar_actions %}<a href="/medications/add" class="btn btn-primary">+ Add Medication</a>{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-header"><h2>All Medications ({{ medications|length }})</h2></div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Name</th><th>Dosage</th><th>Manufacturer</th><th>Side Effects</th></tr>
-      </thead>
-      <tbody>
-        {% for m in medications %}
-        <tr>
-          <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ m.MedicationID }}</span></td>
-          <td><strong>{{ m.Name }}</strong></td>
-          <td><span class="badge badge-yellow">{{ m.Dosage or '—' }}</span></td>
-          <td>{{ m.Manufacturer or '—' }}</td>
-          <td style="color:var(--text-muted);font-size:12px">{{ m.SideEffects or '—' }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">No medications found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header"><h2>💊 Filter & Sort Medications</h2></div>
+  <div class="card-body">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <form method="GET" action="/medications" style="display:flex;gap:8px">
+        <input name="search" placeholder="Search medication name..." value="{{ search or '' }}" style="width:220px"/>
+        {% if sort %}<input type="hidden" name="sort" value="{{ sort }}"/>{% endif %}
+        <button type="submit" class="btn btn-outline">Search</button>
+        {% if search %}<a href="/medications{% if sort %}?sort={{ sort }}{% endif %}" class="btn btn-outline">Clear</a>{% endif %}
+      </form>
+      <div style="height:32px;border-left:1px solid var(--border)"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;font-weight:600;color:var(--text-muted)">Sort by Dosage:</span>
+        <a href="/medications?sort=asc{% if search %}&search={{ search }}{% endif %}" class="btn btn-sm {% if sort == 'asc' %}btn-primary{% else %}btn-outline{% endif %}">↑ Low to High</a>
+        <a href="/medications?sort=desc{% if search %}&search={{ search }}{% endif %}" class="btn btn-sm {% if sort == 'desc' %}btn-primary{% else %}btn-outline{% endif %}">↓ High to Low</a>
+        {% if sort %}<a href="/medications{% if search %}?search={{ search }}{% endif %}" class="btn btn-sm btn-outline">Reset</a>{% endif %}
+      </div>
+    </div>
   </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>All Medications ({{ medications|length }})
+      {% if sort == 'asc' %}<span class="badge badge-blue" style="margin-left:8px">↑ Low to High</span>{% endif %}
+      {% if sort == 'desc' %}<span class="badge badge-blue" style="margin-left:8px">↓ High to Low</span>{% endif %}
+    </h2>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Name</th><th>Dosage ↑↓</th><th>Manufacturer</th><th>Side Effects</th></tr></thead>
+    <tbody>
+    {% for m in medications %}
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;color:var(--text-muted)">#{{ m.MedicationID }}</span></td>
+      <td><strong>{{ m.Name }}</strong></td>
+      <td><span class="badge badge-yellow">{{ m.Dosage or "—" }}</span></td>
+      <td>{{ m.Manufacturer or "—" }}</td>
+      <td style="color:var(--text-muted);font-size:12px">{{ m.SideEffects or "—" }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">No medications found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
 </div>
 {% endblock %}

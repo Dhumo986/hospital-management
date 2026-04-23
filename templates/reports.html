@@ -124,6 +124,50 @@
   </div>
 </div>
 
+
+<!-- DOSAGE FILTER SECTION -->
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header">
+    <h2>💊 Medication Dosage Filter</h2>
+  </div>
+  <div class="card-body">
+    <p style="color:var(--text-muted);margin-bottom:20px;font-size:13.5px">
+      Use the arrows to filter medications by dosage amount. Shows aggregate count of medications at each dosage level.
+    </p>
+    <form method="POST" action="/reports" id="dosageForm">
+      <input type="hidden" name="query_type" value="dosage_filter"/>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">Sort Dosage</label>
+          <div style="display:flex;gap:8px">
+            <button type="submit" name="dosage_order" value="asc" class="btn btn-outline" style="font-size:18px;padding:8px 16px" title="Lowest to Highest">
+              ↑ Low to High
+            </button>
+            <button type="submit" name="dosage_order" value="desc" class="btn btn-outline" style="font-size:18px;padding:8px 16px" title="Highest to Lowest">
+              ↓ High to Low
+            </button>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">Filter by Manufacturer</label>
+          <select name="manufacturer" onchange="document.getElementById('dosageForm').submit()" style="padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-size:13.5px">
+            <option value="">All Manufacturers</option>
+            <option>Pfizer</option>
+            <option>Merck</option>
+            <option>AstraZeneca</option>
+            <option>GSK</option>
+            <option>Novartis</option>
+            <option>Bayer</option>
+            <option>Sanofi</option>
+            <option>AbbVie</option>
+            <option>Johnson and Johnson</option>
+          </select>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- RESULTS -->
 {% if results is not none %}
 <div class="card">
